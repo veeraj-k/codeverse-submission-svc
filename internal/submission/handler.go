@@ -104,3 +104,41 @@ func (h *SubmissionHandler) GetSubmissionByQueryParam(c *gin.Context) {
 
 	c.JSON(http.StatusOK, submissions)
 }
+
+func (h *SubmissionHandler) AddSubmissionTestCases(c *gin.Context) {
+	var testCases []SubmissionTestCases
+	if err := c.BindJSON(&testCases); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	sid := c.Param("id")
+
+	submission, err := h.service.repo.GetSubmissionById(sid)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Submission not found"})
+		return
+	}
+
+	var test_cases_passed uint
+	var total_test_cases uint
+
+	for _, testCase := range testCases {
+		if testCase.Status == "Passed" {
+			test_cases_passed++
+		}
+		total_test_cases++
+	}
+
+	submission.TestCasesPassed = test_cases_passed
+	submission.TotalTestCases = total_test_cases
+
+	if err := h.service.repo.AddSubmissionTestCases(submission, testCases); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Test cases added successfully",
+	})
+}

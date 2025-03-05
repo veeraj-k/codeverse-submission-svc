@@ -49,6 +49,7 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, rconn *amqp091.Connection) {
 	})
 	r.GET("/submission/:id", submissionHandler.GetSubmissionById)
 	r.GET("/submissions", submissionHandler.GetSubmissionByQueryParam)
+	r.PUT("/submission/:id/testcases", submissionHandler.AddSubmissionTestCases)
 	// r.GET("/submissions/:id", GetSubmissionById)
 	// r.GET("/submissions", submissionHandler.)
 }
