@@ -142,3 +142,30 @@ func (h *SubmissionHandler) AddSubmissionTestCases(c *gin.Context) {
 		"message": "Test cases added successfully",
 	})
 }
+
+func (h *SubmissionHandler) UpdateSubmissionStatus(c *gin.Context) {
+
+	sid := c.Param("id")
+
+	submission, err := h.service.repo.GetSubmissionById(sid)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Submission not found"})
+		return
+	}
+
+	status := c.Request.URL.Query().Get("status")
+
+	if status == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Status is required"})
+		return
+	}
+
+	if err := h.service.repo.UpdateStatus(submission, status); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Submission status updated successfully",
+	})
+}

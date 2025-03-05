@@ -7,6 +7,7 @@ type SubmissionRepository interface {
 	GetSubmissionById(id string) (*Submission, error)
 	GetSubmissionsByQueryParams(params map[string]interface{}) ([]Submission, error)
 	AddSubmissionTestCases(submission *Submission, testCases []SubmissionTestCases) error
+	UpdateStatus(submission *Submission, status string) error
 }
 
 type submissionRepository struct {
@@ -58,6 +59,14 @@ func (r *submissionRepository) AddSubmissionTestCases(submission *Submission, te
 	}
 
 	if err := r.DB.Save(submission).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *submissionRepository) UpdateStatus(submission *Submission, status string) error {
+	if err := r.DB.Model(submission).Update("status", status).Error; err != nil {
 		return err
 	}
 
