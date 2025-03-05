@@ -24,8 +24,8 @@ func InitDB() *gorm.DB {
 }
 
 func MigrateDB() {
-	DB.Migrator().DropTable(&submission.Submission{})
-	DB.AutoMigrate(&submission.Submission{})
+	DB.Migrator().DropTable(&submission.Submission{}, &submission.SubmissionTestCases{})
+	DB.AutoMigrate(&submission.Submission{}, &submission.SubmissionTestCases{})
 }
 
 func SeedDB() {
@@ -34,6 +34,24 @@ func SeedDB() {
 			UserId:          1,
 			ProblemId:       101,
 			Language:        "Go",
+			Code:            "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}",
+			Status:          "Accepted",
+			TestCasesPassed: 10,
+			TotalTestCases:  10,
+		},
+		{
+			UserId:          1,
+			ProblemId:       101,
+			Language:        "Go",
+			Code:            "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}",
+			Status:          "Accepted",
+			TestCasesPassed: 10,
+			TotalTestCases:  10,
+		},
+		{
+			UserId:          1,
+			ProblemId:       102,
+			Language:        "Python",
 			Code:            "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"Hello, World!\")\n}",
 			Status:          "Accepted",
 			TestCasesPassed: 10,
@@ -79,5 +97,15 @@ func SeedDB() {
 
 	for _, s := range submissions {
 		DB.Create(&s)
+		fmt.Println("Submission Created:", s.ID)
+		DB.Create(&submission.SubmissionTestCases{
+			SubmissionId: s.ID,
+			Input:        "Hello, World!",
+			Output:       "Hello, World!",
+			Actual:       "Hello, World!",
+			Status:       "Passed",
+			Error:        "",
+			Stdout:       "",
+		})
 	}
 }

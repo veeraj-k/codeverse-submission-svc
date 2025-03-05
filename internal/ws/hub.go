@@ -37,6 +37,10 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.Register:
 			h.mu.Lock()
+
+			if h.Clients[client.ID] != nil {
+				close(h.Clients[client.ID].SendCh)
+			}
 			h.Clients[client.ID] = client
 			h.mu.Unlock()
 			fmt.Println("Client registered:", client.ID)

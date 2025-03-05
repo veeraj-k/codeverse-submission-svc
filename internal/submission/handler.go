@@ -73,3 +73,34 @@ func (h *SubmissionHandler) SubmissionStatus(c *gin.Context, hub *ws.Hub) {
 	go client.WritePump()
 
 }
+
+func (h *SubmissionHandler) GetSubmissionById(c *gin.Context) {
+
+	sid := c.Param("id")
+
+	submission, err := h.service.repo.GetSubmissionById(sid)
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Submission with id not found",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, submission)
+
+}
+
+func (h *SubmissionHandler) GetSubmissionByQueryParam(c *gin.Context) {
+	params := make(map[string]interface{})
+	for key, value := range c.Request.URL.Query() {
+		params[key] = value[0]
+	}
+
+	submissions, err := h.service.repo.GetSubmissionsByQueryParams(params)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, submissions)
+}

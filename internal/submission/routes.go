@@ -47,6 +47,8 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, rconn *amqp091.Connection) {
 	r.GET("/submission/status/:id", func(ctx *gin.Context) {
 		submissionHandler.SubmissionStatus(ctx, hub)
 	})
+	r.GET("/submission/:id", submissionHandler.GetSubmissionById)
+	r.GET("/submissions", submissionHandler.GetSubmissionByQueryParam)
 	// r.GET("/submissions/:id", GetSubmissionById)
-	// r.GET("/submissions", GetSubmissionsByQueryParams)
+	// r.GET("/submissions", submissionHandler.)
 }

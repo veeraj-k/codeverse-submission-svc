@@ -1,13 +1,16 @@
 package rmq
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/rabbitmq/amqp091-go"
 )
 
 func SetupRabbitMQ() *amqp091.Connection {
-	conn, err := amqp091.Dial("amqps://RMQ_HOST/zoiqirnx")
+
+	conn, err := amqp091.Dial(fmt.Sprintf("amqps://%s/%s", os.Getenv("RMQ_HOST"), os.Getenv("RMQ_VHOST")))
 	if err != nil {
 		log.Fatal(err)
 	}

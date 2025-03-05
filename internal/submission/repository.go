@@ -29,7 +29,7 @@ func (r *submissionRepository) CreateSubmission(submission *Submission) error {
 func (r *submissionRepository) GetSubmissionById(id string) (*Submission, error) {
 
 	var submission Submission
-	if err := r.DB.Where("id = ?", id).First(&submission).Error; err != nil {
+	if err := r.DB.Preload("SubmissionTests").Where("id = ?", id).First(&submission).Error; err != nil {
 		return nil, err
 	}
 
@@ -44,7 +44,7 @@ func (r *submissionRepository) GetSubmissionsByQueryParams(params map[string]int
 		query = query.Where(key+" = ?", value)
 	}
 
-	if err := query.Find(&submissions).Error; err != nil {
+	if err := query.Preload("SubmissionTests").Find(&submissions).Error; err != nil {
 		return nil, err
 	}
 
