@@ -34,14 +34,12 @@ func SetupRabbitMQ() *amqp091.Connection {
 		log.Fatal(err)
 	}
 	_, err = ch.QueueDeclare(
-		"submision_status_stream",
+		"submission_status_queue",
 		true,
 		false,
 		false,
 		false,
-		amqp091.Table{
-			"x-queue-type": "stream",
-		},
+		amqp091.Table{},
 	)
 	if err != nil {
 		log.Fatal(err)

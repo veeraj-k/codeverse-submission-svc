@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"submission-service/internal/submission"
@@ -100,9 +101,9 @@ func SeedDB() {
 		fmt.Println("Submission Created:", s.ID)
 		DB.Create(&submission.SubmissionTestCases{
 			SubmissionId: s.ID,
-			Input:        "Hello, World!",
-			Output:       "Hello, World!",
-			Actual:       "Hello, World!",
+			Input:        json.RawMessage(`"Hello, World!"`),
+			Output:       json.RawMessage(`"Hello, World!"`),
+			Actual:       json.RawMessage(`"Hello, World!"`),
 			Status:       "Passed",
 			Error:        "",
 			Stdout:       "",

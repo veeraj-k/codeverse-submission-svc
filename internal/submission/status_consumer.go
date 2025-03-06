@@ -1,7 +1,6 @@
 package submission
 
 import (
-	"fmt"
 	"submission-service/internal/ws"
 
 	"github.com/rabbitmq/amqp091-go"
@@ -20,8 +19,8 @@ func NewStatusConsumer(channel *amqp091.Channel, hub *ws.Hub) *StatusConsumer {
 }
 
 func (c *StatusConsumer) StartConsuming() {
-	msgs, _ := c.channel.Consume(
-		"submision_status_stream",
+	msgs, err := c.channel.Consume(
+		"submission_status_queue",
 		"",
 		false,
 		false,
@@ -29,9 +28,12 @@ func (c *StatusConsumer) StartConsuming() {
 		false,
 		nil,
 	)
+	if err != nil {
+		panic(err)
+	}
 
 	for msg := range msgs {
-		fmt.Println("Received status update:", string(msg.Body))
+		// fmt.Println("Received status update:", string(msg.Body))
 		c.hub.Broadcast <- msg.Body
 	}
 }

@@ -1,6 +1,8 @@
 package submission
 
 import (
+	"encoding/json"
+
 	"github.com/google/uuid"
 )
 
@@ -17,12 +19,12 @@ type Submission struct {
 }
 
 type SubmissionTestCases struct {
-	ID           uint      `json:"id" gorm:"primaryKey"`
-	SubmissionId uuid.UUID `json:"submission_id" gorm:"not null"`
-	Input        string    `json:"input" gorm:"not null"`
-	Output       string    `json:"output" gorm:"not null"`
-	Actual       string    `json:"actual" gorm:"not null"`
-	Status       string    `json:"status" gorm:"not null"`
-	Error        string    `json:"error" gorm:"not null"`
-	Stdout       string    `json:"stdout" gorm:"not null"`
+	ID           uint            `json:"id" gorm:"primaryKey"`
+	SubmissionId uuid.UUID       `json:"submission_id" gorm:"not null"`
+	Input        json.RawMessage `json:"input" gorm:"type:jsonb;not null"`
+	Output       json.RawMessage `json:"output" gorm:"type:jsonb;not null"`
+	Actual       json.RawMessage `json:"actual" gorm:"type:jsonb;not null"`
+	Status       string          `json:"status" gorm:"not null"`
+	Error        string          `json:"error" gorm:"not null"`
+	Stdout       string          `json:"stdout" gorm:"not null"`
 }

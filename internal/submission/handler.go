@@ -124,7 +124,7 @@ func (h *SubmissionHandler) AddSubmissionTestCases(c *gin.Context) {
 	var total_test_cases uint
 
 	for _, testCase := range testCases {
-		if testCase.Status == "Passed" {
+		if testCase.Status == "passed" {
 			test_cases_passed++
 		}
 		total_test_cases++

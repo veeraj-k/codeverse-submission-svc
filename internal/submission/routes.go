@@ -27,12 +27,17 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, rconn *amqp091.Connection) {
 	}
 	go stsConsumer.StartConsuming()
 
-	rmqProducer := NewJobProducer(channel, "code_execution_job_queue")
-	if rmqProducer == nil {
+	jobRmqProducer := NewJobProducer(channel, "code_execution_job_queue")
+	if jobRmqProducer == nil {
 		panic("Failed to create job producer")
 	}
 
-	submissionService := NewSubmissionService(NewSubmissionRepository(db), rmqProducer)
+	statusProducer := NewStatusProducer(channel, "submission_status_queue")
+	if statusProducer == nil {
+		panic("Failed to create status producer")
+	}
+
+	submissionService := NewSubmissionService(NewSubmissionRepository(db), jobRmqProducer, statusProducer)
 	if submissionService == nil {
 		panic("Failed to create submission service")
 	}

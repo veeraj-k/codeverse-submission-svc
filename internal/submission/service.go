@@ -1,12 +1,13 @@
 package submission
 
 type SubmissionService struct {
-	repo        SubmissionRepository
-	rmqProducer JobProducer
+	repo              SubmissionRepository
+	jobRmqProducer    JobProducer
+	statusRmqProducer StatusProducer
 }
 
-func NewSubmissionService(repo SubmissionRepository, rmqProducer *JobProducer) *SubmissionService {
-	return &SubmissionService{repo: repo, rmqProducer: *rmqProducer}
+func NewSubmissionService(repo SubmissionRepository, jobRmqProducer *JobProducer, statusConsumer *StatusProducer) *SubmissionService {
+	return &SubmissionService{repo: repo, jobRmqProducer: *jobRmqProducer, statusRmqProducer: *statusConsumer}
 }
 
 func (s *SubmissionService) CreateSubmission(submissionRequest *SubmissionRequest) (*Submission, error) {
@@ -18,6 +19,7 @@ func (s *SubmissionService) CreateSubmission(submissionRequest *SubmissionReques
 		Status:          "Pending",
 		TotalTestCases:  0,
 		TestCasesPassed: 0,
+		Language:        submissionRequest.Language,
 	}
 
 	err := s.repo.CreateSubmission(submission)
@@ -25,15 +27,19 @@ func (s *SubmissionService) CreateSubmission(submissionRequest *SubmissionReques
 		return nil, err
 	}
 
-	job := &Job{
+	job := &SubmissionJob{
 		SubmissionId: submission.ID,
 		ProblemId:    submission.ProblemId,
 		Code:         submission.Code,
 		UserId:       submission.UserId,
-		Language:     "fix this",
+		Language:     submission.Language,
 	}
 
-	s.rmqProducer.ProduceJob(job)
+	s.jobRmqProducer.ProduceJob(job)
+	s.statusRmqProducer.ProduceStatus(&SubmissionStatus{
+		SubmissionId: submission.ID,
+		Status:       "In QUEUE",
+	})
 
 	return submission, nil
 }
