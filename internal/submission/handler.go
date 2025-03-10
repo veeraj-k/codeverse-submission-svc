@@ -153,17 +153,28 @@ func (h *SubmissionHandler) UpdateSubmissionStatus(c *gin.Context) {
 		return
 	}
 
-	status := c.Request.URL.Query().Get("status")
-
-	if status == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Status is required"})
+	var statusBody SubmissionStatus
+	if err := c.BindJSON(&statusBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.service.repo.UpdateStatus(submission, status); err != nil {
+	// status := c.Request.URL.Query().Get("status")
+
+	// if status == "" {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Status is required"})
+	// 	return
+	// }
+
+	if err := h.service.repo.UpdateStatus(submission, statusBody.Status, statusBody.Message); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	h.service.statusRmqProducer.ProduceStatus(&SubmissionStatus{
+		SubmissionId: submission.ID,
+		Status:       statusBody.Status,
+		Message:      statusBody.Message,
+	})
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Submission status updated successfully",

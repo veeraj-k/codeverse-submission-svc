@@ -13,6 +13,7 @@ import (
 type SubmissionStatus struct {
 	SubmissionId uuid.UUID `json:"job_id"`
 	Status       string    `json:"status"`
+	Message      string    `json:"message"`
 }
 
 type StatusProducer struct {

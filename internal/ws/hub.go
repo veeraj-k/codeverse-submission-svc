@@ -91,7 +91,7 @@ func (c *Client) WritePump() {
 		fmt.Println("in write pump")
 
 		var msg struct {
-			SubmissionID string `json:"submission_id"`
+			SubmissionID string `json:"job_id"`
 		}
 		if err := json.Unmarshal(message, &msg); err != nil {
 			panic(err)
