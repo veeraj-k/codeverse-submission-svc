@@ -48,14 +48,14 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, rconn *amqp091.Connection) {
 	}
 
 	fmt.Println("Registering routes for submission", submissionHandler)
-	r.POST("/submissions", submissionHandler.CreateSubmission)
-	r.GET("/submission/status/:id", func(ctx *gin.Context) {
+	r.POST("/api/submission", submissionHandler.CreateSubmission)
+	r.GET("/api/submission/status/:id", func(ctx *gin.Context) {
 		submissionHandler.SubmissionStatus(ctx, hub)
 	})
-	r.GET("/submission/:id", submissionHandler.GetSubmissionById)
-	r.GET("/submissions", submissionHandler.GetSubmissionByQueryParam)
-	r.PUT("/submission/:id/testcases", submissionHandler.AddSubmissionTestCases)
-	r.PUT("/submission/:id/status", submissionHandler.UpdateSubmissionStatus)
+	r.GET("/api/submission/:id", submissionHandler.GetSubmissionById)
+	r.GET("/api/submission", submissionHandler.GetSubmissionByQueryParam)
+	r.PUT("/api/submission/:id/testcases", submissionHandler.AddSubmissionTestCases)
+	r.PUT("/api/submission/:id/status", submissionHandler.UpdateSubmissionStatus)
 	// r.GET("/submissions/:id", GetSubmissionById)
 	// r.GET("/submissions", submissionHandler.)
 }
