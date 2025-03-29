@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"submission-service/config"
 	"submission-service/db"
 	"submission-service/internal/submission"
@@ -15,7 +16,9 @@ var DB *gorm.DB
 var conn *amqp091.Connection
 
 func init() {
-	config.Loadenv()
+	if os.Getenv("LOAD_ENV") == "true" {
+		config.Loadenv()
+	}
 	DB = db.InitDB()
 	db.MigrateDB()
 	db.SeedDB()
