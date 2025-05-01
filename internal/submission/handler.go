@@ -39,7 +39,7 @@ func (h *SubmissionHandler) CreateSubmission(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message":    "Submission created successfully",
 		"submission": createdSubmission,
-		"ws_url":     fmt.Sprintf("ws://%s/submission/status/%s", c.Request.Host, createdSubmission.ID),
+		"ws_url":     fmt.Sprintf("ws://%s/api/submission/status/%s", c.Request.Host, createdSubmission.ID),
 	})
 
 }
@@ -53,11 +53,17 @@ func (h *SubmissionHandler) SubmissionStatus(c *gin.Context, hub *ws.Hub) {
 		return
 	}
 	// defer conn.Close()
-
-	_, err = h.service.repo.GetSubmissionById(clientID)
+	var _sub *Submission
+	_sub, err = h.service.repo.GetSubmissionById(clientID)
 
 	if err != nil {
 		conn.WriteJSON(gin.H{"error": "Submission not found"})
+		return
+	}
+	fmt.Println("Submission status:", _sub.Status)
+	if _sub.Status == "COMPLETED" || _sub.Status == "FAILED" {
+		conn.WriteJSON(gin.H{"error": "Submission already completed"})
+		conn.Close()
 		return
 	}
 
