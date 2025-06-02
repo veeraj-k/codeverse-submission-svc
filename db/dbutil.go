@@ -25,7 +25,10 @@ func InitDB() *gorm.DB {
 }
 
 func MigrateDB() {
-	DB.Migrator().DropTable(&submission.Submission{}, &submission.SubmissionTestCases{})
+	if os.Getenv("DB_MIGRATE") == "true" {
+		fmt.Println("Migrating database...")
+		DB.Migrator().DropTable(&submission.Submission{}, &submission.SubmissionTestCases{})
+	}
 	DB.AutoMigrate(&submission.Submission{}, &submission.SubmissionTestCases{})
 }
 

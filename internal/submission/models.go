@@ -15,6 +15,7 @@ type Submission struct {
 	Status          string                `json:"status" gorm:"not null"`
 	TestCasesPassed uint                  `json:"test_cases_passed" gorm:"not null"`
 	TotalTestCases  uint                  `json:"total_test_cases" gorm:"not null"`
+	Message         string                `json:"message" gorm:"type:text"`
 	SubmissionTests []SubmissionTestCases `json:"submission_tests" gorm:"foreignKey:submission_id"`
 }
 

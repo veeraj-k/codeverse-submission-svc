@@ -4,23 +4,28 @@ import (
 	"fmt"
 	"net/http"
 	"submission-service/internal/ws"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
 
 type SubmissionHandler struct {
-	service *SubmissionService
-}
-
-func NewSubmissionHandler(service *SubmissionService) *SubmissionHandler {
-	return &SubmissionHandler{service: service}
+	service               *SubmissionService
+	contestStatusProducer *ContestStatusProducer
 }
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
+}
+
+func NewSubmissionHandler(service *SubmissionService, contestStatusProducer *ContestStatusProducer) *SubmissionHandler {
+	return &SubmissionHandler{
+		service:               service,
+		contestStatusProducer: contestStatusProducer,
+	}
 }
 
 func (h *SubmissionHandler) CreateSubmission(c *gin.Context) {
@@ -39,7 +44,7 @@ func (h *SubmissionHandler) CreateSubmission(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{
 		"message":    "Submission created successfully",
 		"submission": createdSubmission,
-		"ws_url":     fmt.Sprintf("ws://%s/submission/status/%s", c.Request.Host, createdSubmission.ID),
+		"ws_url":     fmt.Sprintf("ws://%s/api/submission/status/%s", c.Request.Host, createdSubmission.ID),
 	})
 
 }
@@ -53,11 +58,23 @@ func (h *SubmissionHandler) SubmissionStatus(c *gin.Context, hub *ws.Hub) {
 		return
 	}
 	// defer conn.Close()
-
-	_, err = h.service.repo.GetSubmissionById(clientID)
+	var _sub *Submission
+	_sub, err = h.service.repo.GetSubmissionById(clientID)
 
 	if err != nil {
 		conn.WriteJSON(gin.H{"error": "Submission not found"})
+		return
+	}
+	fmt.Println("Submission status:", _sub.Status)
+	if _sub.Status == "COMPLETED" || _sub.Status == "FAILED" || _sub.Status == "ACCEPTED" {
+		status := SubmissionStatus{
+			SubmissionId: _sub.ID,
+			Status:       _sub.Status,
+			Message:      _sub.Message,
+		}
+		conn.WriteJSON(status)
+		// conn.WriteJSON(gin.H{"error": "Submission already completed"})
+		conn.Close()
 		return
 	}
 
@@ -153,17 +170,42 @@ func (h *SubmissionHandler) UpdateSubmissionStatus(c *gin.Context) {
 		return
 	}
 
-	status := c.Request.URL.Query().Get("status")
-
-	if status == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Status is required"})
+	var statusBody SubmissionStatus
+	if err := c.BindJSON(&statusBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.service.repo.UpdateStatus(submission, status); err != nil {
+	// status := c.Request.URL.Query().Get("status")
+
+	// if status == "" {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Status is required"})
+	// 	return
+	// }
+
+	if err := h.service.repo.UpdateStatus(submission, statusBody.Status, statusBody.Message); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	fmt.Println("Submission status updated:", submission)
+	if statusBody.Status == "COMPLETED" || statusBody.Status == "FAILED" || statusBody.Status == "ACCEPTED" {
+		fmt.Println("Contest status produced")
+		h.contestStatusProducer.ProduceStatus(&ContestStatus{
+			SubmissionId: submission.ID,
+			ProblemId:    submission.ProblemId,
+			UserId:       submission.UserId,
+			Status:       statusBody.Status,
+			Message:      statusBody.Message,
+			TotalTests:   submission.TotalTestCases,
+			PassedTests:  submission.TestCasesPassed,
+			Timestamp:    int32(time.Now().Unix()),
+		})
+	}
+	h.service.statusRmqProducer.ProduceStatus(&SubmissionStatus{
+		SubmissionId: submission.ID,
+		Status:       statusBody.Status,
+		Message:      statusBody.Message,
+	})
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Submission status updated successfully",

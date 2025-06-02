@@ -10,27 +10,32 @@ import (
 	"github.com/rabbitmq/amqp091-go"
 )
 
-type SubmissionStatus struct {
+type ContestStatus struct {
 	SubmissionId uuid.UUID `json:"job_id"`
+	ProblemId    uint      `json:"problem_id"`
+	UserId       uint      `json:"user_id"`
+	TotalTests   uint      `json:"total_tests"`
+	PassedTests  uint      `json:"test_cases_passed"`
+	Timestamp    int32     `json:"timestamp"`
 	Status       string    `json:"status"`
 	Message      string    `json:"message"`
 }
 
-type StatusProducer struct {
+type ContestStatusProducer struct {
 	channel *amqp091.Channel
 	queue   string
 }
 
-func NewStatusProducer(channel *amqp091.Channel, queue string) *StatusProducer {
-	return &StatusProducer{
+func NewContestStatusProducer(channel *amqp091.Channel, queue string) *ContestStatusProducer {
+	return &ContestStatusProducer{
 		channel: channel,
 		queue:   queue,
 	}
 }
 
-func (s *StatusProducer) ProduceStatus(status *SubmissionStatus) {
+func (s *ContestStatusProducer) ProduceStatus(status *ContestStatus) {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	body, err := json.Marshal(status)
