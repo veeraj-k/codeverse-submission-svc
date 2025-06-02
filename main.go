@@ -46,6 +46,6 @@ func main() {
 
 	submission.RegisterRoutes(r, DB, conn)
 
-	r.Run("127.0.0.1:8082")
+	r.Run("0.0.0.0:8082")
 
 }

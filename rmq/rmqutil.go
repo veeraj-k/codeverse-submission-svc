@@ -44,6 +44,17 @@ func SetupRabbitMQ() *amqp091.Connection {
 	if err != nil {
 		log.Fatal(err)
 	}
+	_, err = ch.QueueDeclare(
+		"contest_user_submissions",
+		true,
+		false,
+		false,
+		false,
+		amqp091.Table{},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return conn
 

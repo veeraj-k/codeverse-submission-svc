@@ -41,8 +41,12 @@ func RegisterRoutes(r *gin.Engine, db *gorm.DB, rconn *amqp091.Connection) {
 	if submissionService == nil {
 		panic("Failed to create submission service")
 	}
+	contestStatusProducer := NewContestStatusProducer(channel, "contest_user_submissions")
+	if contestStatusProducer == nil {
+		panic("Failed to create contest status producer")
+	}
 
-	submissionHandler := NewSubmissionHandler(submissionService)
+	submissionHandler := NewSubmissionHandler(submissionService, contestStatusProducer)
 	if submissionHandler == nil {
 		panic("Failed to create submission handler")
 	}
